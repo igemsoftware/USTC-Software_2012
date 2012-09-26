@@ -1,4 +1,5 @@
 USTC-Software_2012
 ==================
 
-USTC-Software 2012 main software
+## REBORN: Reverse Engineering for BiOlogical Regulatory Networks ##
+
