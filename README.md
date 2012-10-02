@@ -22,4 +22,6 @@ This software contains four small parts, dealing with seperate functions in reve
 ###Report###
 **Report** has the function of presenting output results. It has a two-column structure showing different aspects of outputs. The left column presents graph of output behavior, and the right column gives details about the models.
 
-For more information, please refer to our [wiki page](http://2012.igem.org/Team:USTC-Software/software.html)
+This software can be built on Windows, Linux and MacOS operating platform.
+
+For more information, please refer to our [wiki page](http://2012.igem.org/Team:USTC-Software/software.html).
