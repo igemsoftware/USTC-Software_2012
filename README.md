@@ -30,7 +30,7 @@ For more information, please refer to our [wiki page](http://2012.igem.org/Team:
 ####Source Files####
 **source** folder contains all the source files including command line source files in **src** folder and GUI source files in **Reborn_GUI** folder.
 
-The command line source files are written in C++ language, and can be complied across platforms, external libraries includes SBML library can be downloaded [here](http://http://sbml.org/Software/libSBML).
+The command line source files are written in C++ language, and can be complied across platforms, external libraries includes SBML library can be downloaded [here](http://sbml.org/Software/libSBML).
 
 The GUI source files are written in C++ language with Qt SDK, it can also be compiled across platforms using Qt SDK, which can be found [here](http://qt-project.org/downloads).
 
