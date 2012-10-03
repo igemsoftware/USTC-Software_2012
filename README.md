@@ -39,6 +39,9 @@ The software executables are in the **executables** folder, in this folder conta
 
 
 ###Contacts###
+
 For any questions, feel free to contact:
+
 Command line tool: Kai Kang(myfavouritekk@gmail.com)
+
 GUI tool: Sen Jiang(jayxon@gmail.com)
