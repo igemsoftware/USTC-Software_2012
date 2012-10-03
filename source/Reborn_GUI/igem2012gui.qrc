@@ -1,0 +1,37 @@
+<RCC>
+  <qresource prefix="iGEM2012GUI">
+    <file>Resources/ui images/checked.png</file>
+    <file>Resources/ui images/unchecked.png</file>
+    <file>Resources/ui images/go-back.png</file>
+    <file>Resources/ui images/radio-background.png</file>
+    <file>Resources/ui images/round_button_close_hover.png</file>
+    <file>Resources/ui images/round_button_min.png</file>
+    <file>Resources/ui images/round_button_normal.png</file>
+    <file>Resources/ui images/slider_background.png</file>
+    <file>Resources/ui images/horizontal-slider-field-background.png</file>
+    <file>Resources/ui images/off.png</file>
+    <file>Resources/ui images/on.png</file>
+    <file>Resources/ui images/stepper_background_button_down.png</file>
+    <file>Resources/ui images/stepper_background_button_down_hover.png</file>
+    <file>Resources/ui images/stepper_background_button_down_pressed.png</file>
+    <file>Resources/ui images/stepper_background_button_up.png</file>
+    <file>Resources/ui images/stepper_background_button_up_hover.png</file>
+    <file>Resources/ui images/stepper_background_button_up_pressed.png</file>
+    <file>Resources/console-bg.png</file>
+    <file>Resources/screen-bg.png</file>
+    <file>Resources/ui images/button_hover.png</file>
+    <file>Resources/ui images/button_inactive.png</file>
+    <file>Resources/ui images/button_normal.png</file>
+    <file>Resources/ui images/button_pushed.png</file>
+    <file>Resources/ui images/horizontal-slider-background.png</file>
+    <file>Resources/ui images/horizontal-slider-handle-background.png</file>
+    <file>Resources/ui images/horizontal-slider-left-background.png</file>
+    <file>Resources/ui images/slider_button.png</file>
+    <file>Resources/ui images/stepper_background.png</file>
+    <file>Resources/report-background.png</file>
+    <file>Resources/ribbon.png</file>
+    <file>Resources/set_2_white/go_to_console.png</file>
+    <file>Resources/set_2_white/import_data.png</file>
+    <file>Resources/finished_1.png</file>
+  </qresource>
+</RCC>
