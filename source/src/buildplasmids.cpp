@@ -25,12 +25,15 @@ void BuildPlasmids::buildProcess(){
     //      loading data from database
     loadDatabase();
     
-    
-    std::cout << "Which build method do you what?" << std::endl
-        << "1. Using Operons as basic elements." << std::endl
-        << "2. Using promoters and genes as basic elements." << std::endl;
-    int buildChoice;
-    std::cin >> buildChoice;
+    if (!buildChoice)
+    {
+        std::cout << "Which build method do you what?" << std::endl
+            << "1. Using Operons as basic elements." << std::endl
+            << "2. Using promoters and genes as basic elements." << std::endl;
+        //int buildChoice;
+        std::cin >> buildChoice;
+    }
+
     
     switch (buildChoice) {
 
@@ -127,8 +130,8 @@ void BuildPlasmids::loadDatabase(){
     
 //      build plasmid based on operon-operon relationships
 void BuildPlasmids::buildUsingOperons(){
-    ustc::Plasmid** plasmids = new Plasmid*[NUM_SBMLMODEL];
-    for (int plasmidIndex = 0; plasmidIndex < NUM_SBMLMODEL; plasmidIndex++) {
+    ustc::Plasmid** plasmids = new Plasmid*[num_sbmlmodel];
+    for (int plasmidIndex = 0; plasmidIndex < num_sbmlmodel; plasmidIndex++) {
         plasmids[plasmidIndex] = new Plasmid();
         
         //  read complete regulatory matrix
@@ -156,9 +159,9 @@ void BuildPlasmids::buildUsingOperons(){
 //      build plasimid based on gene-promoter relationships
 void BuildPlasmids::buildUsingBioBricks(){
     
-    ustc::Plasmid** plasmids = new Plasmid*[NUM_SBMLMODEL];
+    ustc::Plasmid** plasmids = new Plasmid*[num_sbmlmodel];
     
-    for (int plasmidIndex = 0; plasmidIndex < NUM_SBMLMODEL; plasmidIndex++) {
+    for (int plasmidIndex = 0; plasmidIndex < num_sbmlmodel; plasmidIndex++) {
         plasmids[plasmidIndex] = new Plasmid();
         
         //  read complete regulatory matrix

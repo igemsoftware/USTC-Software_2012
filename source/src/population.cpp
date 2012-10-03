@@ -40,12 +40,14 @@ Population::~Population () {
 
 
 //population initializer
-void Population::init(){
+void Population::init(std::string fn){
     
     //read dynamic data
-    std::string fn;
-    std::cout << "Enter the input file name:" << std::endl;
-    std::cin >> fn;
+    //std::string fn;
+    if (!fn.length()) {
+        std::cout << "Enter the input file name:" << std::endl;
+        std::cin >> fn;
+    }
     
     //initialize the total set of cells that can contain 2*ncell cells
     cells = new Cell*[2 * ncell];
@@ -55,7 +57,7 @@ void Population::init(){
     //	for each cell, initialization
 	for (int i = 0; i < ncell; i++) {
 		cells[i] = new Cell(numind, numprot, numInputSets);
-        cells[i]->getScore(sfunc, ypoints, numind + numprot, numr, false);//getScore in initialization
+        cells[i]->getScore(sfunc, ypoints, numind, numprot, numr, false);//getScore in initialization
 	}
 
    
@@ -86,7 +88,7 @@ void Population::growth(){;
         currCell->mutation();
         
         //get its score
-        currCell->getScore(sfunc, ypoints, numind + numprot, numr, false);
+        currCell->getScore(sfunc, ypoints, numind, numprot, numr, false);
     }
     evolution--;//evolution once
 }
@@ -94,7 +96,7 @@ void Population::growth(){;
 //mutation only for topology
 void Population::mutation(){
     Cell* currCell;
-    for(int i = CELLS_UNCHANGED; i < ncell; i++){
+    for(int i = cells_unchanged; i < ncell; i++){
         
         currCell = cells[i];
         
@@ -115,8 +117,8 @@ void Population::mut_parameters(){
         curCell = cells[ncell + i];
         curCell -> mut_parameters();
         
-        curCell -> getScore(sfunc, ypoints, numind + numprot, numr, false);
-        cells[i] -> getScore(sfunc, ypoints, numind + numprot, numr, false);
+        curCell -> getScore(sfunc, ypoints, numind, numprot, numr, false);
+        cells[i] -> getScore(sfunc, ypoints, numind, numprot, numr, false);
         
         if (curCell -> getCurrScore() < cells[i] -> getCurrScore()) {
             delete cells[i];
@@ -138,8 +140,8 @@ void Population::mut_parameters_simAnneal(){
         curCell = cells[ncell + i];
         curCell -> mut_parameters_simAnneal();
         
-        curCell -> getScore(sfunc, ypoints, numind + numprot, numr, false);
-        cells[i] -> getScore(sfunc, ypoints, numind + numprot, numr, false);
+        curCell -> getScore(sfunc, ypoints, numind, numprot, numr, false);
+        cells[i] -> getScore(sfunc, ypoints, numind, numprot, numr, false);
         
         if (curCell -> getCurrScore() < cells[i] -> getCurrScore()) {
             delete cells[i];
@@ -218,7 +220,7 @@ void Population::selection(){
         }
     }
     
-    std::cout << "Finished Evolution: " << TOTAL_EVO - evolution + 1 << std::endl;
+    std::cout << "Finished Evolution: " << total_evo - evolution + 1 << std::endl;
     std::cout << "BestScore: " << cells[0]->getCurrScore() << std::endl;
 }
 
@@ -238,7 +240,8 @@ void Population::readDynamics (const string& fn) {
 	 */
     std::ifstream infile;
     std::stringstream infileName;
-    infileName << INPUT_PATH << fn;
+    infileName << fn;
+    std::cout << infileName.str();
     infile.open (infileName.str().c_str());
     if (!infile) {
         std::cerr << "Error: unable to open input file: " << infile << std::endl;
@@ -552,7 +555,7 @@ void Population::output(){
         currCell = cells[i];
         currCell->generateTimeCourses(ypoints, numind + numprot, numr);
         
-        int generation = TOTAL_EVO - evolution + 1;// current generation of whole evolution process
+        int generation = total_evo - evolution + 1;// current generation of whole evolution process
         int ranking = i + 1; //ranking of this cell
         std::stringstream name;
         name << "generation_" << generation << "_cell_" << ranking << ".txt";
@@ -562,27 +565,24 @@ void Population::output(){
         
     }
     
-    //plot the best result
-    currCell = cells[0];
-    std::cout << "Best Time Courses:" << std::endl;
-    currCell->getScore(sfunc, ypoints, numind + numprot, numr, true);
-    std::cout << "Best Cell:" << std::endl;
-    currCell->generateTimeCourses(ypoints, numind + numprot, numr);
-    currCell->description(numr);
-    
-    
+    // _num_sbmlmodel cells' time courses
+    for (int i = 0 ; i < num_sbmlmodel; i++) {
+        currCell = cells[i];
+        std::cout << "Time Courses of Cell " << i + 1  << std::endl;
+        currCell->getScore(sfunc, ypoints, numind, numprot, numr, true);
+    }
 }
 
 
 void Population::genHTMLFormat(){
     
     Cell* currCell;
-    for (int i = 0; i < NUM_SBMLMODEL; i++) {
+    for (int i = 0; i < num_sbmlmodel; i++) {
         currCell = cells[i];
         //      create html file;
         std::ofstream htmlOutput;
         std::stringstream fileName;
-        fileName << HTML_SAVES_PATH << "Cell_" << i << "_Description.html";
+        fileName << html_saves_path << "Cell_" << i << "_Description.html";
         htmlOutput.open(fileName.str().c_str());
         htmlOutput << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n\"http://www.w3.org/TR/html4/strict.dtd\">";
         htmlOutput << "<html>\n<head>\n<title>Cell " << i + 1 << " Details</title>\n";
@@ -602,7 +602,7 @@ void Population:: genSBMLFormat(){
 	// creat unit
     
 	// define sp
-    for (int i = 0; i < NUM_SBMLMODEL; i++) {
+    for (int i = 0; i < num_sbmlmodel; i++) {
         
         // declear model
         std::stringstream ss;
@@ -775,8 +775,9 @@ void Population:: genSBMLFormat(){
 			}
 		}
         SBMLWriter sbmlWriter;
-        
-        bool result = sbmlWriter.writeSBML(sbmlDoc,ss.str());
+        std::stringstream sbmlfilepath;
+        sbmlfilepath << output_path << "SBMLModel_" << i << 1 <<".xml";
+        bool result = sbmlWriter.writeSBML(sbmlDoc, sbmlfilepath.str());
         
         if ( result ){
             std::cout << "Wrote file \"" << ss.str() << "\"" << std:: endl;

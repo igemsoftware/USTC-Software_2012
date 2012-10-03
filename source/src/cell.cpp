@@ -940,7 +940,7 @@ void Cell::generateTimeCourses(double*** targetData,int numTargetNodes, int time
      //print time courses to file
      std::ofstream timeCoursesFile;
      std::stringstream currDataFileName;
-     currDataFileName << OUTPUT_PATH << name;
+     currDataFileName << output_path << name;
      timeCoursesFile.open(currDataFileName.str().c_str());
      int nodeSize = (int)nodes.size();
      for (int i = 0; i < numInputSets; i++) {
@@ -963,8 +963,8 @@ void Cell::generateTimeCourses(double*** targetData,int numTargetNodes, int time
  *third: assign the score to currScore
  *prerequirements: nodes in the cell's "nodes" vector should be sorted by indice
  */
-void Cell::getScore(ScoreFunc& sfunc, double*** targetData, int numTargetNodes, int time, bool print){
-	
+void Cell::getScore(ScoreFunc& sfunc, double*** targetData, int numind, int numprot, int time, bool print){
+	int numTargetNodes = numind + numprot;
 	double score = 0;
 	int** timeOfAddInducers = new int*[numInputSets];
 	for(int i = 0; i < numInputSets; i++){
@@ -1051,15 +1051,16 @@ void Cell::getScore(ScoreFunc& sfunc, double*** targetData, int numTargetNodes, 
         //print time courses to file
         std::ofstream timeCoursesFile;
         std::stringstream timeCoursesFileName;
-        timeCoursesFileName << OUTPUT_PATH << "Cell_" << cellIndex << "_TimeCourses.txt";
+        timeCoursesFileName << output_path << "Cell_" << cellIndex << "_TimeCourses.txt";
         timeCoursesFile.open(timeCoursesFileName.str().c_str());
+        timeCoursesFile << time << "\t" << numind << "\t" << numprot << "\t" << numInputSets << "\t";
 		for (int i = 0; i < numInputSets; i++){
 			for (int j = 0; j < numTargetNodes; j++) {
 				for (int k = 0; k < time; k++) {
-					std::cout << this->currData[i][inputIndice[j]][k] << "\t";
+					//std::cout << this->currData[i][inputIndice[j]][k] << "\t";
 					timeCoursesFile << this->currData[i][inputIndice[j]][k] << "\t";
 				}
-				std::cout << std::endl;
+				//std::cout << std::endl;
 				timeCoursesFile << std::endl;
 			}
 		}
@@ -1349,7 +1350,7 @@ void Cell::genRegulatoryRelationships(){
     //
     std::ofstream completeFile;
     std::stringstream fileName;
-    fileName << SAVES_PATH << "Cell_" << cellIndex << "_Complete.txt";
+    fileName << saves_path << "Cell_" << cellIndex << "_Complete.txt";
     completeFile.open(fileName.str().c_str());
     
     std::cout<< "\t";
@@ -1419,7 +1420,7 @@ void Cell::findMotifs(){
     
     std::ofstream motifFile;
     std::stringstream fileName;
-    fileName << SAVES_PATH << "Cell_" << cellIndex << "_Motifs.txt";
+    fileName << saves_path << "Cell_" << cellIndex << "_Motifs.txt";
     motifFile.open(fileName.str().c_str());
     motifFile << numOfSingleMotifs << "\t" << numOfDoubleMotifs << "\t" << numOfTripleMotifs << std::endl;
     motifFile << singleString << doubleString << tripleString;
@@ -1499,9 +1500,9 @@ std::string Cell::findDoubleMotifs(int numberOfGenes, int* indiceOfGenes){
                 int** motifMatrix = new int*[2];
                 motifMatrix[0] = new int[2];
                 motifMatrix[1] = new int[2];
-                for (int i = 0; i < 2; i++) {
-                    for (int j = 0;  j < 2; j++) {
-                        motifMatrix[i][j] = 0;
+                for (int m = 0; m < 2; m++) {
+                    for (int n = 0;  n < 2; n++) {
+                        motifMatrix[m][n] = 0;
                     }
                 }
                 
@@ -1520,9 +1521,9 @@ std::string Cell::findDoubleMotifs(int numberOfGenes, int* indiceOfGenes){
                 motifMatrix[1][0] = regulatoryMatrix[j][i];
                 motifMatrix[1][1] = regulatoryMatrix[j][j];
                 
-                for (int i = 0; i < 2; i++) {
-                    for (int j = 0; j < 2 ; j++) {
-                        doubleString << motifMatrix[i][j] << "\t";
+                for (int m = 0; m < 2; m++) {
+                    for (int n = 0; n < 2 ; j++) {
+                        doubleString << motifMatrix[m][n] << "\t";
                     }
                     doubleString << std::endl;
                 }
@@ -1563,10 +1564,10 @@ std::string Cell::findTripleMotifs(int numberOfGenes, int* indiceOfGenes){
 				else{
                     
                     int** motifMatrix = new int*[3];
-                    for (int i = 0; i < 3; i++) {
-                        motifMatrix[i] = new int[3];
-                        for (int j = 0; j < 3; j++) {
-                            motifMatrix[i][j] = 0;
+                    for (int m = 0; m < 3; m++) {
+                        motifMatrix[m] = new int[3];
+                        for (int n = 0; n < 3; n++) {
+                            motifMatrix[m][n] = 0;
                         }
                     }
                     
