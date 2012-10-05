@@ -47,6 +47,8 @@ The software executables are in the **executables** folder, in this folder conta
 
 4. Expanding database. The present version of **REBORN** only contains the database of E.coli K-12. In the future, more genome information will be added to the database. Therefore, the output will be much more varied and comprehensive.
 
+5. Setting up a platform. Even though the first version of **REBORN** provides the source code on _github_, the programmers still have the difficulty modifying these codes. In the future, we hope there could be a more generalized platform for both programmers and users. In the platform, users can download applications as they want and programmers can design applications for different groups of users.
+
 ###Contacts###
 
 For any questions, feel free to contact:
