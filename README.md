@@ -38,6 +38,15 @@ The GUI source files are written in C++ language with Qt SDK, it can also be com
 The software executables are in the **executables** folder, in this folder contains separated folder for each platform, and for each platform we provide both command line tool and GUI versions.
 
 
+####Future Work####
+1. Expanding input types. At present, in our software, only time courses and prior knowledge can be the input. In the next version of **REBORN**, logical behaviors such and _AND Gate_ can also be input to our software.
+
+2. More mutation types. In this version, our software contains five kinds of mutations: changing degradation rate, changing kinetic constants, adding a new gene, adding a regulation and adding post-transcriptional modifications. In the future, more mutations will be added, such as adding logical gates, adding reactions with metabolites and changing states of proteins and promoters.
+
+3. Optimizing selection method. By now, our software represents all the outputs without selection. The future version will contain the function of selecting those outputs with more stable and credible properties. More over, users can use default scoring functions or they can define new scoring functions as they want.
+
+4. Expanding database. The present version of **REBORN** only contains the database of E.coli K-12. In the future, more genome information will be added to the database. Therefore, the output will be much more varied and comprehensive.
+
 ###Contacts###
 
 For any questions, feel free to contact:
