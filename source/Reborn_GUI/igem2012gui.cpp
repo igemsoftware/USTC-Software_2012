@@ -12,8 +12,15 @@ iGEM2012GUI::iGEM2012GUI(QWidget *parent, Qt::WFlags flags)
 
     setupmap();
 
-    //only for debug
-    //outputcellnum = 5;
+
+    ports = "21";
+    isFTPset = false;
+    isRebornFinished = false;
+
+    generation = 1000;
+    population = 200;
+    survival = 5;
+    outputCellNum = 10;
 }
 
 
@@ -25,12 +32,12 @@ iGEM2012GUI::~iGEM2012GUI()
 
 void iGEM2012GUI::selectinputfile()
 {
-    inputfilename = QFileDialog::getOpenFileName(this, "Open Data File", NULL, "Text files (*.txt)");
-    if (inputfilename.size() == 0)
+    inputFileName = QFileDialog::getOpenFileName(this, "Open Data File", NULL, "Text files (*.txt)");
+    if (inputFileName.size() == 0)
     {
         return;
     }
-    graphicsView->OpenDataFile(inputfilename);
+    graphicsView->OpenDataFile(inputFileName);
 }
 
 
@@ -86,48 +93,44 @@ void iGEM2012GUI::on_spinbox_value_change(int i)
 }
 
 
-
+/*
 void iGEM2012GUI::uploadprogress(qint64 bytesSent, qint64 bytesTotal)
 {
-    if (!uploaderrorcode)
+    if (!uploadErrorCode)
     {
         ftpui.status->setText("Uploading: " + QString::number((double)bytesSent/bytesTotal*100, 'f', 3) + "%");
 
     }
 }
+*/
 
 
-
-void iGEM2012GUI::uploadfinished()
+void iGEM2012GUI::uploadfinished(int id, bool error)
 {
-    static int i = 0;
-    if (!uploaderrorcode)
+    //static int i = 0;
+    if (!error)
     {
         //8 js file
-        if (++i == outputcellnum + 8)
+        if (id == 3 + outputCellNum * 2 + 9)
         {
             //delete uploadman;
             //delete upfile;
-            ftpui.status->setText("All finished!");
+            ui2.textEdit->append("All finished!");
 
         }
-        else
+        else if (id > 2)
         {
-            ftpui.status->setText(QString::number(i) + " file finished!");
+            ui2.textEdit->append("Upload " + QString::number(id - 2) + " file finished!");
         }
     }
+    else
+    {
+        ui2.textEdit->append(ftp->errorString());
+    }
 
-
-    uploaderrorcode = 0;
 }
 
 
-
-void iGEM2012GUI::uploaderror(QNetworkReply::NetworkError neterror)
-{
-    ftpui.status->setText("Upload error! Code: " + QString::number(neterror));
-    uploaderrorcode = neterror;
-}
 
 
 
@@ -136,30 +139,32 @@ void iGEM2012GUI::openftpdialog()
 {
     ftpdlg = new QDialog(this);
     ftpui.setupUi(ftpdlg);
+
+    ftpui.lineEdit->setText(hosts);
+    ftpui.lineEdit_2->setText(ports);
+    ftpui.lineEdit_3->setText(username);
+    ftpui.lineEdit_4->setText(passwd);
+    ftpui.lineEdit_5->setText(remoteAddress);
+
     ftpdlg->show();
 
 
-    QObject::connect(ftpui.upload, SIGNAL(clicked()), this, SLOT(uploadtoftp()));
+    QObject::connect(ftpui.set, SIGNAL(clicked()), this, SLOT(setftp()));
     QObject::connect(ftpui.cancel, SIGNAL(clicked()), ftpdlg, SLOT(close()));
 }
+
 
 //upload a file
 void iGEM2012GUI::ftpupfile(QString filename, QString filepath)
 {
-    QUrl uploadurl("ftp://" + ftpui.lineEdit->text() + "/" + ftpui.lineEdit_5->text() + filename);
-    uploadurl.setUserName(ftpui.lineEdit_3->text()); 
-    uploadurl.setPassword(ftpui.lineEdit_4->text()); 
-    uploadurl.setPort(ftpui.lineEdit_2->text().toInt()); 
-    QNetworkRequest upload(uploadurl);
 
 
     upfile = new QFile(filepath + filename);
     upfile->open(QIODevice::ReadOnly);
-    reply = uploadman->put(upload, upfile);
+    ftp->put(upfile, remoteAddress + "/" + filename);
 
-    QObject::connect(reply, SIGNAL(uploadProgress(qint64, qint64)), this, SLOT(uploadprogress(qint64, qint64)));
-    QObject::connect(reply, SIGNAL(finished()), this, SLOT(uploadfinished()));
-    QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploaderror(QNetworkReply::NetworkError)));
+    //QObject::connect(ftp, SIGNAL(done(bool)), this, SLOT(uploadfinished()));
+    //QObject::connect(ftp, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploaderror(QNetworkReply::NetworkError)));
 
     
 }
@@ -167,31 +172,22 @@ void iGEM2012GUI::ftpupfile(QString filename, QString filepath)
 //on click upload
 void iGEM2012GUI::uploadtoftp()
 {
-    uploaderrorcode = 0;
+    
 
-    ftpui.status->setText("");
+    ftp = new QFtp();
 
-    if (ftpui.lineEdit_5->text().length() && !ftpui.lineEdit_5->text().endsWith('/'))
+    QObject::connect(ftp, SIGNAL(commandFinished(int, bool)), this, SLOT(uploadfinished(int, bool)));
+
+    ftp->connectToHost(hosts, ports.toInt());
+    ftp->login(username, passwd);
+    //ftp->mkdir(remoteAddress);
+    ftp->mkdir(remoteAddress + "/js");
+    for(int i = 0; i < outputCellNum; i++)
     {
-        ftpui.lineEdit_5->setText(ftpui.lineEdit_5->text() + "/");
+        ftpupfile("Cell_" + QString::number(i) + "_Chart.html", "Result/" + timeString + "/Saves/html/");
+        ftpupfile("Cell_" + QString::number(i) + "_Description.html", "Result/" + timeString + "/Saves/html/");
     }
-    
-    QFtp *ftp = new QFtp();
-    ftp->connectToHost(ftpui.lineEdit->text());
-    ftp->login(ftpui.lineEdit_3->text(), ftpui.lineEdit_4->text());
-    ftp->mkdir(ftpui.lineEdit_5->text() + "js");
-    ftp->close();
-    
-    while(ftp->state());
 
-    uploadman = new QNetworkAccessManager(this);
-    //QObject::connect(uploadman, SIGNAL(finished(QNetworkReply *)), this, SLOT(uploadfinished(QNetworkReply *)));
-    for(int i = 0; i < outputcellnum; i++)
-    {
-        ftpupfile("Cell_" + QString::number(i) + "_Chart.html", "Result/" + timestring + "/Saves/html/");
-        ftpupfile("Cell_" + QString::number(i) + "_Description.html", "Result/" + timestring + "/Saves/html/");
-    }
-    
     ftpupfile("cell_description_style.css", "html/");
     ftpupfile("js/html5.js", "html/");
     ftpupfile("js/zingchart-html5-zoom-min.js", "html/");
@@ -201,11 +197,30 @@ void iGEM2012GUI::uploadtoftp()
     ftpupfile("js/zingchart-html5-line-min.js", "html/");
     ftpupfile("js/zingchart-html5-preview-min.js", "html/");
     ftpupfile("js/zingchart-html5-xy-min.js", "html/");
+    ftp->close();
+    
+
 
 
 }
 
 
+void iGEM2012GUI::setftp()
+{
+    hosts = ftpui.lineEdit->text();
+    ports = ftpui.lineEdit_2->text();
+    username = ftpui.lineEdit_3->text();
+    passwd = ftpui.lineEdit_4->text();
+    remoteAddress = ftpui.lineEdit_5->text();
+
+    if (remoteAddress.length() && remoteAddress.endsWith('/'))
+    {
+        remoteAddress.chop(1);
+    }
+
+    isFTPset = true;
+    ftpui.status->setText("Setting saved");
+}
 
 
 //update stdout to QTextBrowser
@@ -220,10 +235,27 @@ void iGEM2012GUI::on_cmdexit(int exitCode, QProcess::ExitStatus exitStatus)
     if (!exitStatus)
     {
         ui2.textEdit->append("Reborn finished!");
+        for (int i = 0; i < outputCellNum; i++)
+        {
+            graphicsViewReport[i] = new MyQGraphicsView();
+            createjson(i);
+        }
+        if (isFTPset)
+        {
+            uploadtoftp();
+        }
+
+        isRebornFinished = true;
+
+        ui2.goto3->setEnabled(true);
+        ui2.goto4->setEnabled(true);
     }
     
 
     ui2.rebornButton->setText("Let's REBORN!");
+
+
+    ui2.goto1->setEnabled(true);
 
 }
 
@@ -231,7 +263,18 @@ void iGEM2012GUI::on_cmdexit(int exitCode, QProcess::ExitStatus exitStatus)
 
 void iGEM2012GUI::on_cmderror(QProcess::ProcessError error)
 {
-    ui2.textEdit->append("Error!\nCode: " + QString::number(error));
+    if (error == QProcess::FailedToStart)
+    {
+        ui2.textEdit->append("Failed to start reborn_cl.");
+    }
+
+#if defined(DEBUG)||defined(_DEBUG)
+    ui2.textEdit->append("Error code: " + QString::number(error));
+#endif
+
+    ui2.rebornButton->setText("Let's REBORN!");
+
+    ui2.goto1->setEnabled(true);
 }
 
 
@@ -246,42 +289,51 @@ void iGEM2012GUI::reborn()
         ui2.textEdit->append("Process killed!");
         return;
     }
-    
+
+    isRebornFinished = false;
+
     //clear log
     ui2.textEdit->clear();
     
     //current time
-    timestring = QDate::currentDate().toString("yyyy-MM-dd-") + QTime::currentTime().toString("HH-mm-ss");
+    timeString = QDate::currentDate().toString("yyyy-MM-dd-") + QTime::currentTime().toString("HH-mm-ss");
     QDir dir;
-    dir.mkpath("Result/" + timestring + "/Output");
-    dir.mkpath("Result/" + timestring + "/Saves/html");
+    dir.mkpath("Result/" + timeString + "/Output");
+    dir.mkpath("Result/" + timeString + "/Saves/html");
 
-    if (!inputfilename.length())
+    if (!inputFileName.length())
     {
-        inputfilename = QFileDialog::getOpenFileName(this, "Open Data File", NULL, "Text files (*.txt)");
+        inputFileName = QFileDialog::getOpenFileName(this, "Open Data File", NULL, "Text files (*.txt)");
 
     }
     
 
     QStringList arg;
-    arg << "-f" << inputfilename << "-o" << "Result/" + timestring;
+    arg << "-f" << inputFileName << "-o" << "Result/" + timeString;
     arg << "-n" << "-m" << QString::number(1 + ui2.radioButton_2->isChecked());
     arg << "-e" << ui2.spinBox->text() << "-p" << ui2.spinBox_2->text();
     arg << "-u" << ui2.spinBox_3->text() << "-b" << ui2.spinBox_4->text();
     
 
+    ui2.rebornButton->setText("Kill");
+
+    ui2.goto1->setEnabled(false);
+    ui2.goto3->setEnabled(false);
+    ui2.goto4->setEnabled(false);
+
     QObject::connect(&cmdline, SIGNAL(readyReadStandardOutput()), this, SLOT(updatestdout()));
     QObject::connect(&cmdline, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(on_cmdexit(int, QProcess::ExitStatus)));
-    //QObject::connect(&cmdline, SIGNAL(error(QProcess::ProcessError)), this, SLOT(on_cmderror(QProcess::ProcessError)));
+
+    QObject::connect(&cmdline, SIGNAL(error(QProcess::ProcessError)), this, SLOT(on_cmderror(QProcess::ProcessError)));
+
 
     //cmdline.setProcessChannelMode(QProcess::MergedChannels);
     cmdline.start("reborn_cl", arg);
-    cmdline.waitForStarted();
+    //cmdline.waitForStarted();
 
-    ui2.rebornButton->setText("Kill");
 
-    QFile::copy("html/cell_description_style.css", "Result/" + timestring + "/Saves/html/cell_description_style.css");
-    outputcellnum = ui2.spinBox_4->value();
+    QFile::copy("html/cell_description_style.css", "Result/" + timeString + "/Saves/html/cell_description_style.css");
+    //outputCellNum = ui2.spinBox_4->value();
 }
 
 
@@ -310,6 +362,25 @@ void iGEM2012GUI::setupconsole()
 
     ui2.setupUi(this);
 
+    ui2.textEdit->setPlainText(cmdlog);
+    ui2.spinBox->setValue(generation);
+    ui2.spinBox_2->setValue(population);
+    ui2.spinBox_3->setValue(survival);
+    ui2.spinBox_4->setValue(outputCellNum);
+
+    if (isRebornFinished)
+    {
+        ui2.goto3->setEnabled(true);
+        ui2.goto4->setEnabled(true);
+    }
+    else
+    {
+        ui2.goto3->setEnabled(false);
+        //debug
+        //ui2.goto4->setEnabled(false);
+    }
+
+
     QObject::connect(ui2.goto1, SIGNAL(clicked()), this, SLOT(switchto1()));
     QObject::connect(ui2.goto3, SIGNAL(clicked()), this, SLOT(switchto3()));
     QObject::connect(ui2.goto4, SIGNAL(clicked()), this, SLOT(switchto4()));
@@ -332,6 +403,12 @@ void iGEM2012GUI::setupconsole()
 
 void iGEM2012GUI::deleteconsole()
 {
+    cmdlog = ui2.textEdit->toPlainText();
+    generation = ui2.spinBox->value();
+    population = ui2.spinBox_2->value();
+    survival = ui2.spinBox_3->value();
+    outputCellNum = ui2.spinBox_4->value();
+
     ui2.centralwidget->close();
     delete ui2.centralwidget;
 }
@@ -362,8 +439,18 @@ void iGEM2012GUI::switch3to2()
 
 void iGEM2012GUI::switch4to2()
 {
+    /*
+    for (int i = 0; i < outputCellNum; i++)
+    {
+        delete nButton[i];
+    }
+
+    delete nButton;
+
     ui4.centralwidget->close();
+    */
     delete qgl;
+
     delete ui4.centralwidget;
     ui4window->close();
     delete ui4window;
@@ -376,8 +463,7 @@ void iGEM2012GUI::switchto3()
 {
     
 
-
-    //deleteconsole();
+    deleteconsole();
 
 
     ui3.setupUi(this);
@@ -385,7 +471,7 @@ void iGEM2012GUI::switchto3()
     QObject::connect(ui3.pushButton, SIGNAL(clicked()), this, SLOT(switch3to2()));
     //QObject::connect(ui3.pushButton_2, SIGNAL(clicked()), this, SLOT(createjson()));
     
-    for (int i = 0; i < outputcellnum; i++)
+    for (int i = 0; i < outputCellNum; i++)
     {
         tabpage[i] = new QWidget();
         tabpage[i]->setStyleSheet("background:transparent; border:0px;");
@@ -393,11 +479,18 @@ void iGEM2012GUI::switchto3()
 
         textview[i] = new QWebView(tabpage[i]);
         textview[i]->setGeometry(QRect(570, 10, 305, 480));
-        textview[i]->setUrl(QUrl::fromLocalFile(QDir::currentPath() + "/Result/" + timestring + "/Saves/html/Cell_" + QString::number(i) + "_Description.html"));
+        textview[i]->setUrl(QUrl::fromLocalFile(QDir::currentPath() + "/Result/" + timeString + "/Saves/html/Cell_" + QString::number(i) + "_Description.html"));
 
-        graphicsViewReport[i] = new MyQGraphicsView(tabpage[i]);
+        //graphicsViewReport[i] = new MyQGraphicsView(tabpage[i]);
+        graphicsViewReport[i]->setParent(tabpage[i]);
         graphicsViewReport[i]->setGeometry(QRect(0, 30, 515, 460));
-        createjson(i);
+        //createjson(i);
+
+
+        graphicsViewReport[i]->hasdrawn = 1;
+        graphicsViewReport[i]->DrawData(0);
+
+
     }
 }
 
@@ -415,6 +508,19 @@ void iGEM2012GUI::switchto4()
     qgl = new MyQGLWidget(ui4.centralwidget);
     qgl->setGeometry(QRect(0, 0, 1024, 600));
 
+    nButton = new QPushButton *[outputCellNum];
+
+    for (int i = 0; i < outputCellNum; i++)
+    {
+        nButton[i] = new QPushButton("Cell " + QString::number(i));
+        nButton[i]->setFixedHeight(31);
+        ui4.horizontalLayout->addWidget(nButton[i]);
+
+        QObject::connect(nButton[i], SIGNAL(clicked()), this, SLOT(glbuttonclicked()));
+    }
+    
+    switchqgl(0);
+
     QObject::connect(ui4.pushButton, SIGNAL(clicked()), this, SLOT(switch4to2()));
     ui4window->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
     ui4window->show();
@@ -428,7 +534,76 @@ void iGEM2012GUI::switchto1()
 
     
     setupmap();
+
+
+
+    if (inputFileName.length())
+    {
+        graphicsView->OpenDataFile(inputFileName);
+    }
 }
+
+
+void iGEM2012GUI::glbuttonclicked()
+{
+    //int i = pos().x()/ 890.0 * outputCellNum;
+    QObject *wid = QObject::sender();
+    int i;
+    for (i = 0; i < outputCellNum; i++)
+    {
+        if (wid == nButton[i])
+        {
+            break;
+        }
+    }
+
+    switchqgl(i);
+}
+
+
+
+void iGEM2012GUI::switchqgl(int i)
+{
+    for (int j = 0; j < outputCellNum; j++)
+    {
+        nButton[j]->setEnabled(true);
+    }
+
+    nButton[i]->setEnabled(false);
+
+    std::ifstream infile("Result/" + timeString.toStdString() + "/Saves/Cell_" + QString::number(i).toStdString() + "_Complete.txt");
+
+    if (!infile.is_open())
+    {
+#if defined(DEBUG)||defined(_DEBUG)
+        QMessageBox::warning(NULL, "warning", "Error: unable to open input file: Cell_" + QString::number(ig) + "_Complete.txt", QMessageBox::Ok, QMessageBox::Ok);
+#endif
+        infile.close();
+        return;
+    }
+
+    infile >> qgl->n;
+
+    qgl->matrix = new int *[qgl->n];
+    for (int i = 0; i < qgl->n; i++)
+    {
+        qgl->matrix[i] = new int[qgl->n];
+        for (int j = 0; j < qgl->n; j++)
+        {
+            infile >> qgl->matrix[i][j];
+        }
+    }
+
+    infile.close();
+
+    qgl->updateGL();
+}
+
+
+
+
+
+
 
 
 //html version report
@@ -437,10 +612,12 @@ void iGEM2012GUI::createjson(int ig)
     
     
     std::ifstream infile("html/chart_template.html");
-    std::ofstream outfile("Result/" + timestring.toStdString() + "/Saves/html/Cell_" + QString::number(ig).toStdString() + "_Chart.html");
+    std::ofstream outfile("Result/" + timeString.toStdString() + "/Saves/html/Cell_" + QString::number(ig).toStdString() + "_Chart.html");
     if (!infile.is_open())
     {
+#if defined(DEBUG)||defined(_DEBUG)
         QMessageBox::warning(NULL, "warning", "Error: unable to open file: html/chart_template.html", QMessageBox::Ok, QMessageBox::Ok);
+#endif
         infile.close();
         outfile.close();
         return;
@@ -449,11 +626,13 @@ void iGEM2012GUI::createjson(int ig)
     infile.close();
     
     
-    infile.open("Result/" + timestring.toStdString() + "/Output/Cell_" + QString::number(ig).toStdString() + "_TimeCourses.txt");
+    infile.open("Result/" + timeString.toStdString() + "/Output/Cell_" + QString::number(ig).toStdString() + "_TimeCourses.txt");
 
     if (!infile.is_open())
     {
+#if defined(DEBUG)||defined(_DEBUG)
         QMessageBox::warning(NULL, "warning", "Error: unable to open input file: Cell_" + QString::number(ig) + "_TimeCourses.txt", QMessageBox::Ok, QMessageBox::Ok);
+#endif
         infile.close();
         return;
     }
@@ -464,7 +643,9 @@ void iGEM2012GUI::createjson(int ig)
     infile >>  graphicsViewReport[ig]->numr >> graphicsViewReport[ig]->numind >> graphicsViewReport[ig]->numprot >> graphicsViewReport[ig]->numInputSets;
     if (!graphicsViewReport[ig]->numr)
     {
+#if defined(DEBUG)||defined(_DEBUG)
         QMessageBox::warning(NULL, "warning", "Error: empty data", QMessageBox::Ok, QMessageBox::Ok);
+#endif
         infile.close();
         return;
     }
@@ -517,8 +698,8 @@ void iGEM2012GUI::createjson(int ig)
     outfile << "]}]}</script></body></html>";
     outfile.close();
 
-    graphicsViewReport[ig]->hasdrawn = 1;
-    graphicsViewReport[ig]->DrawData(0);
+    //graphicsViewReport[ig]->hasdrawn = 1;
+    //graphicsViewReport[ig]->DrawData(0);
 
 
 }

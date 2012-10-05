@@ -38,16 +38,13 @@ public slots:
     void clearinfo();
     void setdefault();
     void openftpdialog();
-    void uploadtoftp();
+    void setftp();
     void reborn();
     void updatestdout();
     void on_cmdexit(int exitCode, QProcess::ExitStatus exitStatus);
     void on_cmderror(QProcess::ProcessError error);
 
-    void ftpupfile(QString url, QString filepath);
-    void uploadprogress(qint64 bytesSent, qint64 bytesTotal);
-    void uploadfinished();
-    void uploaderror(QNetworkReply::NetworkError);
+    void uploadfinished(int id, bool error);
 
     void switchto1();
     void switch1to2();
@@ -57,6 +54,8 @@ public slots:
     void switchto4();
 
     void on_spinbox_value_change(int i);
+
+    void glbuttonclicked();
 
 private:
     Ui::iGEM2012GUIClass ui;
@@ -71,20 +70,39 @@ private:
     MyQGLWidget *qgl;
     QWidget *tabpage[10];
     QWebView *textview[10];
+    QPushButton **nButton;
+
     QPoint lastPos;
-    int outputcellnum;
-    int uploaderrorcode;
+    
+    int generation;
+    int population;
+    int survival;
+    int outputCellNum;
+    QString cmdlog;
+
     QFile* upfile;
     QNetworkAccessManager *uploadman;
     QNetworkReply* reply;
-    QString timestring;
-    QString inputfilename;
+    QString timeString;
+    QString inputFileName;
     QProcess cmdline;
+    QFtp *ftp;
+    
+    QString hosts;
+    QString ports;
+    QString username;
+    QString passwd;
+    QString remoteAddress;
+    bool isFTPset;
+    bool isRebornFinished;
 
     void setupmap();
     void setupconsole();
     void deleteconsole();
     void createjson(int ig);
+    void uploadtoftp();
+    void ftpupfile(QString url, QString filepath);
+    void switchqgl(int i);
 };
 
 

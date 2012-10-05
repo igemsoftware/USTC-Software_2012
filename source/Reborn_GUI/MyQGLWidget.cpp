@@ -10,6 +10,13 @@ MyQGLWidget::MyQGLWidget(QWidget *parent)
     zRot = 0;
     eyeangle = PI/4;
 
+
+
+    //size of the matrix
+    n = 0;
+
+    
+
     labelfont = QFont("Verdana", 12);
 
     flagname[0] = "Resources/flags/blue-flag.png";
@@ -34,7 +41,7 @@ MyQGLWidget::MyQGLWidget(QWidget *parent)
 
 MyQGLWidget::~MyQGLWidget()
 {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < n; i++)
     {
         delete [] matrix[i];
     }
@@ -69,18 +76,6 @@ void MyQGLWidget::initializeGL()
     //line width
     glLineWidth(2.5);
 
-    //size of the matrix
-    n = 4;
-
-    matrix = new int*[n];
-    for (int i = 0; i < n; i++)
-    {
-        matrix[i] = new int[n];
-        for (int j = 0; j < n; j++)
-        {
-            matrix[i][j] = i>j?1:-1;
-        }
-    }
     
 }
 
@@ -96,10 +91,10 @@ void MyQGLWidget::paintGL()
     bindTexture(QPixmap("Resources/map.png"), GL_TEXTURE_2D, GL_RGBA);
 
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0); glVertex3f(-157.28, -120, -2);
-    glTexCoord2f(1, 0); glVertex3f(157.28, -120, -2);
-    glTexCoord2f(1, 1); glVertex3f(157.28, 120, -2);
-    glTexCoord2f(0, 1); glVertex3f(-157.28, 120, -2);
+    glTexCoord2f(0, 0); glVertex3f(-183.5, -140, -2);
+    glTexCoord2f(1, 0); glVertex3f(183.5, -140, -2);
+    glTexCoord2f(1, 1); glVertex3f(183.5, 140, -2);
+    glTexCoord2f(0, 1); glVertex3f(-183.5, 140, -2);
     glEnd();
 
 
@@ -156,6 +151,48 @@ void MyQGLWidget::paintGL()
                 if (i == j)
                 {
 
+                    double ix = -100 * cos(PI * 2/n * i);
+                    double iy = 100 * sin(PI * 2/n * i);
+
+                    double ox = ix * 1.2;
+                    double oy = iy * 1.2;
+
+                    double oangle = atan2(oy, ox);
+
+                    double endangle = oangle + PI*0.8;
+
+                    double arrowx = ox + 17.32 * cos(endangle);
+                    double arrowy = oy + 17.32 * sin(endangle);
+                    
+
+                    double dx = arrowx - ix;
+                    double dy = arrowy - iy;
+                    double k = -dx/dy;
+                    double ax = 6/sqrt(1 + SQR(k));
+                    double ay = ax * k;
+
+
+                    if (matrix[i][j] == 1)
+                    {
+                        glColor4f(0, 1, 0, 1);
+                        glBegin(GL_LINE_STRIP);
+                        glVertex3f(arrowx + 0.8 * dx + ax, arrowy + 0.8 * dy + ay, 0);
+                        glVertex3f(arrowx, arrowy, 0);
+                        glVertex3f(arrowx + 0.8 * dx - ax, arrowy + 0.8 * dy - ay, 0);
+                        glEnd();
+                    }
+                    else
+                    {
+                        glColor4f(1, 0, 0, 1);
+                        glBegin(GL_LINES);
+                        glVertex3f(arrowx + ax, arrowy + ay, 0);
+                        glVertex3f(arrowx - ax, arrowy - ay, 0);
+                        glEnd();
+                    }
+
+
+                    drawArc(17.32, ox, oy, 0, oangle - PI*0.8, endangle);
+
                 } 
                 else
                 {
@@ -175,7 +212,7 @@ void MyQGLWidget::paintGL()
                     double ox = mx * (1 + dis/mdis * (i > j ? -1 : 1));
                     double oy = my * (1 + dis/mdis * (i > j ? -1 : 1));
 
-                    if ((i == n-1 && j == 0)||(j == n-1 && i ==0))
+                    if ((i > n/2.0 && j == 0)||(j > n/2.0 && i ==0))
                     {
                         double temp = ix;
                         ix = jx;
@@ -228,7 +265,7 @@ void MyQGLWidget::paintGL()
 
     glLoadIdentity();
     
-    gluLookAt(0, -400 * cos(eyeangle), 400 * sin(eyeangle), 0, 0, 1, 0, 1, 0);
+    gluLookAt(0, -500 * cos(eyeangle), 400 * sin(eyeangle), 0, 0, 1, 0, 1, 0);
 
     //glRotatef(60, 1.0, 0.0, 0.0);
     //glRotatef(yRot, 0.0, 1.0, 0.0);

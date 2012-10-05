@@ -25,6 +25,9 @@ public:
     MyQGLWidget(QWidget *parent = 0);
     ~MyQGLWidget();
 
+    int **matrix;
+    int n;
+
     //QSize minimumSizeHint() const;
     //QSize sizeHint() const;
 /*
@@ -55,8 +58,6 @@ private:
     GLfloat zRot;
     double eyeangle;
     QPoint lastPos;
-    int **matrix;
-    int n;
 
     QString flagname[8];
     QColor diskcolor[8];

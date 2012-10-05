@@ -11,9 +11,9 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>FTP Setting</string>
   </property>
-  <widget class="QPushButton" name="upload">
+  <widget class="QPushButton" name="set">
    <property name="geometry">
     <rect>
      <x>180</x>
@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Upload</string>
+    <string>Set</string>
    </property>
   </widget>
   <widget class="QPushButton" name="cancel">
