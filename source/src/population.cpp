@@ -241,16 +241,16 @@ void Population::readDynamics (const string& fn) {
     std::ifstream infile;
     std::stringstream infileName;
     infileName << fn;
-    std::cout << infileName.str();
+    std::cout << "Input file: " << infileName.str();
     infile.open (infileName.str().c_str());
     if (!infile) {
-        std::cerr << "Error: unable to open input file: " << infile << std::endl;
+        std::cerr << "Error: unable to open input file: " << infileName << std::endl;
 		exit(1);
     }
 
 	//	number of xpoints, inducers and proteins
 	infile >>  numr >> numind >> numprot>>numInputSets;
-    std::cout << numr << std::endl << numind << std::endl << numprot <<std::endl <<numInputSets<< std::endl;
+    std::cout << "\nTime points: " << numr << std::endl << "Inducers: " << numind << std::endl << "Proteins: " << numprot <<std::endl << "Input Sets: " << numInputSets<< std::endl;
     if (infile.bad ()) throw std::runtime_error ("IO stream corrupted");
 	if (infile.fail ()) throw std::runtime_error ("bad data");
 	if (!numr) {
@@ -273,16 +273,22 @@ void Population::readDynamics (const string& fn) {
 
 	for(int ir=0;ir<numr;ir++){
 		infile >> xpoints[ir];
+#if defined(DEBUG)||defined(_DEBUG)
         std::cout << xpoints[ir] << "\t";
+#endif
 		for(int iinput=0;iinput<numInputSets;iinput++){
 			for(int ic=0;ic < numy;ic++){
 				infile >> ypoints[iinput][ic][ir];
+#if defined(DEBUG)||defined(_DEBUG)
 				std::cout << ypoints[iinput][ic][ir]<<"\t";
+#endif
 				if (infile.bad ()) throw std::runtime_error ("IO stream corrupted");
 				if (infile.fail ()) throw std::runtime_error ("bad data");
 			}
 		}
+#if defined(DEBUG)||defined(_DEBUG)
 		std::cout<<std::endl;
+#endif
 	}
 
     infile.close();
@@ -568,7 +574,7 @@ void Population::output(){
     // _num_sbmlmodel cells' time courses
     for (int i = 0 ; i < num_sbmlmodel; i++) {
         currCell = cells[i];
-        std::cout << "Time Courses of Cell " << i + 1  << std::endl;
+        std::cout << "Time Courses of Cell " << i + 1  << " written successfully!" << std::endl;
         currCell->getScore(sfunc, ypoints, numind, numprot, numr, true);
     }
 }
