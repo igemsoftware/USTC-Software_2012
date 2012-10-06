@@ -66,10 +66,10 @@ private:
     QDialog *ftpdlg;
     QMainWindow *ui4window;
     MyQGraphicsView *graphicsView;
-    MyQGraphicsView *graphicsViewReport[10];
+    MyQGraphicsView **graphicsViewReport;
     MyQGLWidget *qgl;
-    QWidget *tabpage[10];
-    QWebView *textview[10];
+    QWidget **tabpage;
+    QWebView **textview;
     QPushButton **nButton;
 
     QPoint lastPos;
@@ -81,8 +81,8 @@ private:
     QString cmdlog;
 
     QFile* upfile;
-    QNetworkAccessManager *uploadman;
-    QNetworkReply* reply;
+    //QNetworkAccessManager *uploadman;
+    //QNetworkReply* reply;
     QString timeString;
     QString inputFileName;
     QProcess cmdline;

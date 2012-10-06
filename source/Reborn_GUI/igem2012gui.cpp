@@ -19,7 +19,7 @@ iGEM2012GUI::iGEM2012GUI(QWidget *parent, Qt::WFlags flags)
 
     generation = 1000;
     population = 200;
-    survival = 5;
+    survival = 10;
     outputCellNum = 10;
 }
 
@@ -110,22 +110,25 @@ void iGEM2012GUI::uploadfinished(int id, bool error)
     //static int i = 0;
     if (!error)
     {
-        //8 js file
+        //8 js file and 1 css file
         if (id == 3 + outputCellNum * 2 + 9)
         {
-            //delete uploadman;
-            //delete upfile;
-            ui2.textEdit->append("All finished!");
+            ui2.textEdit->append("Uploading finished!");
 
         }
+
+#if defined(DEBUG)||defined(_DEBUG)
         else if (id > 2)
         {
             ui2.textEdit->append("Upload " + QString::number(id - 2) + " file finished!");
         }
+#endif
+
     }
     else
     {
         ui2.textEdit->append(ftp->errorString());
+        
     }
 
 }
@@ -172,7 +175,8 @@ void iGEM2012GUI::ftpupfile(QString filename, QString filepath)
 //on click upload
 void iGEM2012GUI::uploadtoftp()
 {
-    
+
+    ui2.textEdit->append("Uploading the result to FTP...\nPlease be patient.");
 
     ftp = new QFtp();
 
@@ -235,15 +239,21 @@ void iGEM2012GUI::on_cmdexit(int exitCode, QProcess::ExitStatus exitStatus)
     if (!exitStatus)
     {
         ui2.textEdit->append("Reborn finished!");
+
+        graphicsViewReport = new MyQGraphicsView *[outputCellNum];
+
         for (int i = 0; i < outputCellNum; i++)
         {
             graphicsViewReport[i] = new MyQGraphicsView();
             createjson(i);
         }
+
         if (isFTPset)
         {
             uploadtoftp();
         }
+
+        
 
         isRebornFinished = true;
 
@@ -295,18 +305,23 @@ void iGEM2012GUI::reborn()
     //clear log
     ui2.textEdit->clear();
     
+
+    if (!inputFileName.length())
+    {
+        inputFileName = QFileDialog::getOpenFileName(this, "Open Data File", NULL, "Text files (*.txt)");
+        if (!inputFileName.length())
+        {
+            return;
+        }
+    }
+
+
     //current time
     timeString = QDate::currentDate().toString("yyyy-MM-dd-") + QTime::currentTime().toString("HH-mm-ss");
     QDir dir;
     dir.mkpath("Result/" + timeString + "/Output");
     dir.mkpath("Result/" + timeString + "/Saves/html");
 
-    if (!inputFileName.length())
-    {
-        inputFileName = QFileDialog::getOpenFileName(this, "Open Data File", NULL, "Text files (*.txt)");
-
-    }
-    
 
     QStringList arg;
     arg << "-f" << inputFileName << "-o" << "Result/" + timeString;
@@ -376,8 +391,8 @@ void iGEM2012GUI::setupconsole()
     else
     {
         ui2.goto3->setEnabled(false);
-        //debug
-        //ui2.goto4->setEnabled(false);
+        
+        ui2.goto4->setEnabled(false);
     }
 
 
@@ -427,7 +442,7 @@ void iGEM2012GUI::switch1to2()
 
 void iGEM2012GUI::switch3to2()
 {
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < outputCellNum; i++)
     {
         delete graphicsViewReport[i];
     }
@@ -471,6 +486,9 @@ void iGEM2012GUI::switchto3()
     QObject::connect(ui3.pushButton, SIGNAL(clicked()), this, SLOT(switch3to2()));
     //QObject::connect(ui3.pushButton_2, SIGNAL(clicked()), this, SLOT(createjson()));
     
+    tabpage = new QWidget *[outputCellNum];
+    textview = new QWebView *[outputCellNum];
+
     for (int i = 0; i < outputCellNum; i++)
     {
         tabpage[i] = new QWidget();
