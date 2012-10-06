@@ -78,6 +78,7 @@ private:
     int population;
     int survival;
     int outputCellNum;
+    bool isPromotersAndGene;
     QString cmdlog;
 
     QFile* upfile;

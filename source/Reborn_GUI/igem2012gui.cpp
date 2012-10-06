@@ -21,6 +21,7 @@ iGEM2012GUI::iGEM2012GUI(QWidget *parent, Qt::WFlags flags)
     population = 200;
     survival = 10;
     outputCellNum = 10;
+    isPromotersAndGene = false;
 }
 
 
@@ -72,8 +73,11 @@ void iGEM2012GUI::setdefault()
 {
     ui2.spinBox->setValue(1000);
     ui2.spinBox_2->setValue(200);
-    ui2.spinBox_3->setValue(5);
+    ui2.spinBox_3->setValue(10);
     ui2.spinBox_4->setValue(10);
+
+    ui2.radioButton->setChecked(true);
+    ui2.radioButton_2->setChecked(false);
 }
 
 
@@ -383,6 +387,9 @@ void iGEM2012GUI::setupconsole()
     ui2.spinBox_3->setValue(survival);
     ui2.spinBox_4->setValue(outputCellNum);
 
+    ui2.radioButton->setChecked(!isPromotersAndGene);
+    ui2.radioButton_2->setChecked(isPromotersAndGene);
+
     if (isRebornFinished)
     {
         ui2.goto3->setEnabled(true);
@@ -423,6 +430,8 @@ void iGEM2012GUI::deleteconsole()
     population = ui2.spinBox_2->value();
     survival = ui2.spinBox_3->value();
     outputCellNum = ui2.spinBox_4->value();
+    isPromotersAndGene = ui2.radioButton_2->isChecked();
+
 
     ui2.centralwidget->close();
     delete ui2.centralwidget;
