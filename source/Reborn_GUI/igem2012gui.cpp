@@ -234,7 +234,9 @@ void iGEM2012GUI::setftp()
 //update stdout to QTextBrowser
 void iGEM2012GUI::updatestdout()
 {
-    ui2.textEdit->append(QString(cmdline.readAllStandardOutput()));
+    ui2.textEdit->moveCursor(QTextCursor::End);
+
+    ui2.textEdit->insertPlainText(QString(cmdline.readAllStandardOutput()));
 }
 
 
